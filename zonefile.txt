@@ -1,0 +1,45 @@
+$TTL    86400
+$ORIGIN bikramtuladhar.zyz.np.
+@  1D  IN  SOA ns1.bikramtuladhar.zyz.np. hostmaster.bikramtuladhar.zyz.np. (
+                  2002022401 ; Serial
+                  3H         ; Refresh
+                  15         ; Retry
+                  1w         ; Expire
+                  3h         ; Minimum TTL
+                 )
+       IN  NS     ns1.bikramtuladhar.zyz.np.
+       IN  NS     ns2.smokeyjoe.com.
+       IN  MX  10 mail.another.com.
+       IN  MX  20 mail2.another.com.
+       IN  TXT    "v=spf1 a mx ip4:192.168.0.0/16 -all"
+       IN  AAAA   2001:0db8:85a3:0000:0000:8a2e:0370:7334
+       IN  A      192.168.0.1    
+
+ns1    IN  A      192.168.0.1    
+ns2    IN  A      192.168.0.2    
+www    IN  A      192.168.0.2
+ftp    IN  CNAME  www.bikramtuladhar.zyz.np.
+mail   IN  A      192.168.0.5
+mail2  IN  A      192.168.0.6
+bill   IN  A      192.168.0.3
+fred   IN  A      192.168.0.4
+
+; Additional A records
+store  IN  A      192.168.0.7
+shop   IN  A      192.168.0.8
+
+; CNAME records
+support IN  CNAME  www.bikramtuladhar.zyz.np.
+blog    IN  CNAME  www.bikramtuladhar.zyz.np.
+
+; Additional MX record for redundancy
+mail3  IN  MX  30 mail3.another.com.
+
+; SRV records for services
+_ldap._tcp IN  SRV  10 5 389 ldap.bikramtuladhar.zyz.np.
+_ftp._tcp  IN  SRV  10 5 21 ftp.bikramtuladhar.zyz.np.
+
+; Additional TXT records
+@      IN  TXT    "google-site-verification=abcdef1234567890"
+@      IN  TXT    "dmarc1=policy"
+
