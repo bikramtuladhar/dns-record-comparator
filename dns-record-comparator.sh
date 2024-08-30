@@ -80,45 +80,51 @@ compare_record() {
     local server1=$3
     local server2=$4
 
-    RESULT_T1=$(dig +short $record_type $domain @$server1 | sort)
-    RESULT_T2=$(dig +short $record_type $domain @$server2 | sort)
-
-    REPORT="${BLUE}$record_type $domain${RESET}\n${BLUE}(srv: $server1):${RESET}\n$RESULT_T1\n\n${BLUE}(srv: $server2):${RESET}\n$RESULT_T2"
+    RESULT_T1=$(dig +short $record_type $domain @$server1 | sort | tr '\n' ',' | sed 's/,$//')
+    RESULT_T2=$(dig +short $record_type $domain @$server2 | sort | tr '\n' ',' | sed 's/,$//')
 
     if [[ $RESULT_T1 != $RESULT_T2 ]]; then
-        case "${record_type}" in 
+        case "${record_type}" in
             SOA|NS)
-                ERROR_LEVEL="${YELLOW}WARN${RESET}"
+                STATUS="${YELLOW}WARN${RESET}"
                 WARN_COUNT=$((WARN_COUNT+1))
-                echo -e "${ERROR_LEVEL}: $record_type record differs for $domain - examine results"
-                echo -e "${REPORT}"
                 ;;
             *)
-                ERROR_LEVEL="${RED}ERROR${RESET}"
+                STATUS="${RED}ERROR${RESET}"
                 ERROR_COUNT=$((ERROR_COUNT+1))
-                echo -e "${ERROR_LEVEL}: ${record_type} record differs for $domain"
-                echo -e "${REPORT}"
                 ;;
         esac
     else
-        ERROR_LEVEL="${GREEN}OK${RESET}"
-        echo -e "${ERROR_LEVEL}: ${record_type} $domain"
-        echo -e "${REPORT}"
+        STATUS="${GREEN}OK${RESET}"
     fi
-    echo  # Add a blank line for better readability
+
+    printf "| %-5s | %-40s | %-40s | %-40s | %s |\n" \
+           "$record_type" \
+           "${domain:0:40}" \
+           "${RESULT_T1:0:40}" \
+           "${RESULT_T2:0:40}" \
+           "$STATUS"
 }
 
 # Extract records from zone file
 echo -e "${BLUE}Extracting DNS records from zone file:${RESET}"
 RECORDS=($(extract_dns_records "$ZONEFILE"))
 
-# Compare extracted records against both servers
+# Print table header
 echo -e "\n${BLUE}Comparing extracted records against both servers:${RESET}"
+printf "+-------+------------------------------------------+------------------------------------------+------------------------------------------+--------+\n"
+printf "| %-5s | %-40s | %-40s | %-40s | %-6s |\n" "Type" "Domain" "Server 1 ($T1)" "Server 2 ($T2)" "Status"
+printf "+-------+------------------------------------------+------------------------------------------+------------------------------------------+--------+\n"
+
+# Compare extracted records against both servers
 for ((i=0; i<${#RECORDS[@]}; i+=2)); do
     RECORD_TYPE=${RECORDS[i]}
     DOMAIN=${RECORDS[i+1]}
     compare_record "$RECORD_TYPE" "$DOMAIN" "$T1" "$T2"
 done
+
+# Print table footer
+printf "+-------+------------------------------------------+------------------------------------------+------------------------------------------+--------+\n"
 
 # Output counts
 echo -e "\n${RED}ERRORS:${RESET} $ERROR_COUNT\n${YELLOW}WARNINGS:${RESET} $WARN_COUNT"
